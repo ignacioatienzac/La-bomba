@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡LA BOMBA!</title>
+    <style>
+        /* --- ESTILOS CSS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'); /* Fuente para el título */
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            background-color: #282c34; /* Fondo oscuro */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Ocupa toda la pantalla */
+            margin: 0;
+            overflow: hidden; /* Evita barras de scroll */
+        }
+        h1 {
+            font-family: 'Press Start 2P', cursive; /* Fuente más original */
+            font-size: 3.5rem; /* Tamaño más grande */
+            color: #ff0000; /* Rojo vibrante */
+            text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.7); /* Sombra para hacerlo vistoso */
+            margin-bottom: 30px; /* Margen reducido */
+            font-weight: bold; 
+        }
+        #bomb-container {
+            position: relative;
+            height: 600px; /* Ajustado a 600px */
+            width: 600px; /* Ajustado a 600px */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #bomb {
+            font-size: 500px; /* Adaptado al nuevo tamaño (antes 800px) */
+            /* Animación de temblor */
+            animation: shake 0.4s infinite;
+            transition: opacity 0.2s;
+        }
+        #explosion {
+            font-size: 600px; /* Adaptado al nuevo tamaño (antes 1000px) */
+            position: absolute; /* Se superpone a la bomba */
+            color: #ffc107; /* Color naranja/amarillo */
+        }
+        
+        /* Clase para ocultar elementos */
+        .hidden {
+            display: none;
+        }
+
+        /* Animación de temblor para la bomba */
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(4px, 4px) rotate(1.5deg); } /* Temblor ajustado (antes 5px, 2deg) */
+            50% { transform: translate(0, 0) rotate(0eg); }
+            75% { transform: translate(-4px, 4px) rotate(-1.5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* Animación de explosión */
+        @keyframes explode {
+            0% { transform: scale(0.8); opacity: 1; } 
+            100% { transform: scale(2); opacity: 0; } 
+        }
+        
+        /* Clase para activar la animación de explosión */
+        .explode-animation {
+            animation: explode 0.7s forwards;
+        }
+
+        /* Estilo del botón */
+        button {
+            font-size: 1.8rem; 
+            padding: 15px 30px;
+            margin-top: 30px; /* Margen reducido (antes 50px) */
+            cursor: pointer;
+            background-color: #c00; 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s, opacity 0.3s, transform 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+        button:hover {
+            background-color: #e00;
+            transform: translateY(-2px); 
+        }
+        button:disabled {
+            background-color: #555;
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>¡LA BOMBA!</h1>
+    
+    <div id="bomb-container">
+        <div id="bomb">💣</div>
+        <div id="explosion" class="hidden">💥</div>
+    </div>
+    
+    <button id="startButton">Activar Bomba</button>
+
+    <audio id="tickSound" src="URL_AL_SONIDO_TIC_TOC.mp3" loop preload="auto"></audio>
+    <audio id="explosionSound" src="URL_AL_SONIDO_DE_EXPLOSION.mp3" preload="auto"></audio>
+
+    <script>
+        // --- LÓGICA JAVASCRIPT ---
+
+        const startButton = document.getElementById('startButton');
+        const bomb = document.getElementById('bomb');
+        const explosion = document.getElementById('explosion');
+        const tickSound = document.getElementById('tickSound');
+        const explosionSound = document.getElementById('explosionSound');
+
+        // El evento 'click' llama a startBomb cada vez que se pulsa el botón
+        startButton.addEventListener('click', startBomb);
+
+        function startBomb() {
+            // 1. Deshabilitar botón
+            startButton.disabled = true;
+            startButton.textContent = "Tic, Toc...";
+
+            // 2. Resetear visuales: Mostrar bomba, ocultar explosión
+            bomb.classList.remove('hidden');
+            explosion.classList.add('hidden');
+            explosion.classList.remove('explode-animation'); // Quitar animación previa
+
+            // 3. Calcular nuevo tiempo aleatorio (30 a 60 seg)
+            const minTime = 30000;
+            const maxTime = 60000;
+            const randomTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+
+            console.log(`La bomba explotará en ${randomTime / 1000} segundos.`);
+
+            // 4. Iniciar sonido tic-toc
+            tickSound.currentTime = 0; 
+            tickSound.play().catch(error => {
+                console.warn("El navegador bloqueó el sonido 'tic-toc'.", error);
+            });
+
+            // 5. Activar el temporizador para la explosión
+            setTimeout(() => {
+                explode();
+            }, randomTime);
+        }
+
+        function explode() {
+            // 6. Parar tic-toc y sonar explosión
+            tickSound.pause();
+            explosionSound.currentTime = 0;
+            explosionSound.play().catch(error => {
+                console.warn("Error al reproducir el sonido de explosión:", error);
+            });
+
+            // 7. Mostrar explosión y ocultar bomba
+            bomb.classList.add('hidden');
+            explosion.classList.remove('hidden');
+            explosion.classList.add('explode-animation');
+
+            // 8. Reactivar el botón después de la animación de explosión
+            setTimeout(() => {
+                startButton.disabled = false;
+                startButton.textContent = "Activar de Nuevo";
+            }, 1000); // 1 segundo (un poco más que la animación de 0.7s)
+        }
+    </script>
+
+</body>
+</html>
