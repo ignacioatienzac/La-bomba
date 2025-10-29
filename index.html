@@ -110,8 +110,13 @@
     
     <button id="startButton">Activar Bomba</button>
 
-    <audio id="tickSound" src="URL_AL_SONIDO_TIC_TOC.mp3" loop preload="auto"></audio>
-    <audio id="explosionSound" src="URL_AL_SONIDO_DE_EXPLOSION.mp3" preload="auto"></audio>
+    <!-- 
+      ¡CORREGIDO! 
+      Ahora apunta a los archivos de tu repositorio.
+      El atributo 'loop' asegura que el tic-toc se repita.
+    -->
+    <audio id="tickSound" src="tic-toc.mp3" loop preload="auto"></audio>
+    <audio id="explosionSound" src="explosion.mp3" preload="auto"></audio>
 
     <script>
         // --- LÓGICA JAVASCRIPT ---
@@ -122,56 +127,63 @@
         const tickSound = document.getElementById('tickSound');
         const explosionSound = document.getElementById('explosionSound');
 
-        // El evento 'click' llama a startBomb cada vez que se pulsa el botón
         startButton.addEventListener('click', startBomb);
 
         function startBomb() {
-            // 1. Deshabilitar botón
             startButton.disabled = true;
             startButton.textContent = "Tic, Toc...";
 
-            // 2. Resetear visuales: Mostrar bomba, ocultar explosión
             bomb.classList.remove('hidden');
             explosion.classList.add('hidden');
-            explosion.classList.remove('explode-animation'); // Quitar animación previa
+            explosion.classList.remove('explode-animation'); 
 
-            // 3. Calcular nuevo tiempo aleatorio (30 a 60 seg)
             const minTime = 30000;
             const maxTime = 60000;
             const randomTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
             console.log(`La bomba explotará en ${randomTime / 1000} segundos.`);
 
-            // 4. Iniciar sonido tic-toc
+            // --- INICIO DE LA CORRECCIÓN DE AUDIO ---
+            
+            // 1. "Prepara" el sonido de explosión para evitar el bloqueo del navegador
+            // Esto lo "desbloquea" para que se pueda usar después en el setTimeout
+            explosionSound.play();
+            explosionSound.pause();
+            explosionSound.currentTime = 0;
+
+            // 2. Inicia el sonido tic-toc (que ya tiene 'loop' en el HTML)
             tickSound.currentTime = 0; 
             tickSound.play().catch(error => {
                 console.warn("El navegador bloqueó el sonido 'tic-toc'.", error);
             });
+            
+            // --- FIN DE LA CORRECCIÓN DE AUDIO ---
 
-            // 5. Activar el temporizador para la explosión
             setTimeout(() => {
                 explode();
             }, randomTime);
         }
 
         function explode() {
-            // 6. Parar tic-toc y sonar explosión
+            // 1. Detiene el tic-toc
             tickSound.pause();
+            
+            // 2. Reproduce la explosión
             explosionSound.currentTime = 0;
             explosionSound.play().catch(error => {
                 console.warn("Error al reproducir el sonido de explosión:", error);
             });
 
-            // 7. Mostrar explosión y ocultar bomba
+            // Lógica visual
             bomb.classList.add('hidden');
             explosion.classList.remove('hidden');
             explosion.classList.add('explode-animation');
 
-            // 8. Reactivar el botón después de la animación de explosión
+            // Reactiva el botón
             setTimeout(() => {
                 startButton.disabled = false;
                 startButton.textContent = "Activar de Nuevo";
-            }, 1000); // 1 segundo (un poco más que la animación de 0.7s)
+            }, 1000); 
         }
     </script>
 
